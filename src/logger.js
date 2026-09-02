@@ -1,23 +1,64 @@
-import { LEVELS } from "./levels.js";
+import { LEVELS, LEVEL_PRIORITY, isValidLevel } from "./levels.js";
 
-export function log(level, message) {
-    const timestamp = new Date().toISOString();
+let minimumLevel = LEVELS.DEBUG;
 
-    console.log(`[${timestamp}] [${level}] ${message}`);
+export function setMinimumLevel(level) {
+    if (!isValidLevel(level)) {
+        throw new Error(`Invalid log level: ${level}`);
+    }
+
+    minimumLevel = level;
 }
 
-export function debug(message) {
-    log(LEVELS.DEBUG, message);
+export function getMinimumLevel() {
+    return minimumLevel;
 }
 
-export function info(message) {
-    log(LEVELS.INFO, message);
+export function log(level, message, metadata = {}) {
+    if (!isValidLevel(level)) {
+        throw new Error(`Invalid log level: ${level}`);
+    }
+
+    if (LEVEL_PRIORITY[level] < LEVEL_PRIORITY[minimumLevel]) {
+        return;
+    }
+
+    const entry = {
+        timestamp: new Date().toISOString(),
+        level,
+        message,
+        metadata
+    };
+
+    console.log(formatLog(entry));
+
+    return entry;
 }
 
-export function warn(message) {
-    log(LEVELS.WARN, message);
+export function formatLog(entry) {
+    const metadata = Object.keys(entry.metadata).length
+        ? ` ${JSON.stringify(entry.metadata)}`
+        : "";
+
+    return `[${entry.timestamp}] [${entry.level}] ${entry.message}${metadata}`;
 }
 
-export function error(message) {
-    log(LEVELS.ERROR, message);
+export function debug(message, metadata) {
+    return log(LEVELS.DEBUG, message, metadata);
+}
+
+export function info(message, metadata) {
+    return log(LEVELS.INFO, message, metadata);
+}
+
+export function warn(message, metadata) {
+    return log(LEVELS.WARN, message, metadata);
+}
+
+export function error(message, metadata) {
+    return log(LEVELS.ERROR, message, metadata);
+}
+
+export function fatal(message, metadata) {
+    return log(LEVELS.FATAL, message, metadata);
 }
