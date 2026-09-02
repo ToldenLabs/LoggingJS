@@ -1,4 +1,5 @@
 import { LEVELS, LEVEL_PRIORITY, isValidLevel } from "./levels.js";
+import { add } from "./store.js";
 
 let minimumLevel = LEVELS.DEBUG;
 
@@ -29,6 +30,8 @@ export function log(level, message, metadata = {}) {
         message,
         metadata
     };
+
+    add(entry);
 
     console.log(formatLog(entry));
 
